@@ -198,8 +198,12 @@ async def run_episode(task: str) -> None:
 
         # ── Connect to environment ───────────────────────────────────────
         if IMAGE_NAME:
-            # Hackathon path: validator sets IMAGE_NAME, we start the container
-            env = await CRISPREnv.from_docker_image(IMAGE_NAME)
+            # Hackathon path: validator sets IMAGE_NAME, we start the container.
+            # LocalDockerProvider maps -p {local}:8000, so override PORT to 8000
+            # inside the container (Dockerfile default is 7860 for HF Spaces).
+            env = await CRISPREnv.from_docker_image(
+                IMAGE_NAME, env_vars={"PORT": "8000"}
+            )
         else:
             # Dev/fallback path: connect to a live Space
             env_url = os.getenv(
