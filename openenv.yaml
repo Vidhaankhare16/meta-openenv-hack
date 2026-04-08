@@ -1,0 +1,18 @@
+name: crispr_env
+version: "1.0.0"
+description: >
+  CRISPR Guide RNA Design Environment — a three-task benchmark for AI agents
+  that simulate computational biologist workflows: PAM site scanning,
+  guide RNA design with on-target efficiency scoring, and off-target safety
+  assessment. All rewards are fully deterministic.
+author: VidhaanKhare16
+tasks:
+  - name: easy
+    description: "Find all NGG PAM sites in a 90-bp synthetic DNA sequence."
+    max_steps: 1
+  - name: medium
+    description: "Design a 20-nt guide RNA near a pathogenic mutation and score efficiency."
+    max_steps: 3
+  - name: hard
+    description: "Assess off-target risk for 3 candidate guides and recommend the safest."
+    max_steps: 5
