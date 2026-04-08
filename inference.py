@@ -252,7 +252,9 @@ async def run_episode(task: str) -> None:
             if done:
                 break
 
-        score   = min(max(sum(rewards), 0.0), 1.0)
+        raw_score = sum(rewards)
+        # Validator requires score strictly in (0, 1) — never 0.0 or 1.0
+        score   = max(0.001, min(0.999, raw_score))
         success = score >= SUCCESS_SCORE_THRESHOLD
 
     except Exception as exc:

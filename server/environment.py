@@ -18,8 +18,34 @@ import uuid
 from typing import Any, Dict, List, Optional
 
 from openenv.core.env_server import Environment
+from openenv.core.rubrics import Rubric
 
 from models import CRISPRAction, CRISPRObservation, CRISPRState
+
+
+# ============================================================================
+# Rubric / grader — required by the hackathon Phase 2 validator
+# ============================================================================
+
+def _clamp(value: float) -> float:
+    """Clamp to strictly open interval (0, 1) as required by the validator."""
+    return max(0.001, min(0.999, float(value)))
+
+
+class CRISPRGrader(Rubric):
+    """
+    Grader for all three CRISPR tasks.
+
+    The environment already computes the reward inside each step() call and
+    stores it as observation.reward.  This rubric reads that value and clamps
+    it to the open interval (0, 1) so the hackathon validator is satisfied.
+    """
+
+    def forward(self, action: Any, observation: Any) -> float:
+        reward = getattr(observation, "reward", None)
+        if reward is None:
+            return 0.5          # neutral mid-point for no-reward steps
+        return _clamp(float(reward))
 
 
 # ============================================================================
@@ -290,6 +316,7 @@ class CRISPREnvironment(Environment):
     SUPPORTS_CONCURRENT_SESSIONS = True
 
     def __init__(self) -> None:
+        super().__init__(rubric=CRISPRGrader())
         self._state = CRISPRState()
 
     # ------------------------------------------------------------------ reset
@@ -301,6 +328,8 @@ class CRISPREnvironment(Environment):
         **kwargs: Any,
     ) -> CRISPRObservation:
         import os
+
+        self._reset_rubric()   # reset grader state for new episode
 
         task_name = (
             task
@@ -445,7 +474,9 @@ class CRISPREnvironment(Environment):
         recall = len(correct) / len(true_set) if true_set else 1.0
         # Small penalty for false positives to discourage guessing everything
         fp_penalty = max(0.0, (len(predicted - true_set) / max(len(true_set), 1)) * 0.1)
-        reward = round(max(0.0, recall - fp_penalty), 4)
+        raw = max(0.0, recall - fp_penalty)
+        # Clamp to (0.001, 0.999) — validator requires strictly open interval
+        reward = round(_clamp(raw), 4)
 
         self._state.cumulative_reward += reward
 
@@ -525,7 +556,8 @@ class CRISPREnvironment(Environment):
                 )
 
             eff = compute_efficiency_score(guide_seq)
-            reward = round(0.6 * eff, 4)
+            # Clamp to (0.001, 0.999) — validator requires strictly open interval
+            reward = round(_clamp(0.6 * eff), 4)
             self._state.ontarget_score = eff
             self._state.cumulative_reward += reward
 
@@ -610,20 +642,22 @@ class CRISPREnvironment(Environment):
             ranking = action.ranking or []
             sel_idx = action.selected_guide_index
 
-            reward = 0.0
+            raw_reward = 0.0
 
             # 0.3 for having called check_offtarget on all 3 guides
             if all_checked:
-                reward += 0.3
+                raw_reward += 0.3
 
             # 0.4 for correct safety ranking
             if ranking and list(ranking) == _TRUE_SAFETY_RANKING:
-                reward += 0.4
+                raw_reward += 0.4
 
             # 0.3 for selecting the correct safest guide
             if sel_idx == _TRUE_BEST_GUIDE_INDEX:
-                reward += 0.3
+                raw_reward += 0.3
 
+            # Clamp to (0.001, 0.999) — validator requires strictly open interval
+            reward = round(_clamp(raw_reward), 4)
             self._state.cumulative_reward += reward
 
             true_counts = self._state.true_offtarget_counts

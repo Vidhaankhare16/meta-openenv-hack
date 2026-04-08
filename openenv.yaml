@@ -10,9 +10,12 @@ tasks:
   - name: easy
     description: "Find all NGG PAM sites in a 90-bp synthetic DNA sequence."
     max_steps: 1
+    grader: deterministic
   - name: medium
     description: "Design a 20-nt guide RNA near a pathogenic mutation and score efficiency."
     max_steps: 3
+    grader: deterministic
   - name: hard
     description: "Assess off-target risk for 3 candidate guides and recommend the safest."
     max_steps: 5
+    grader: deterministic
