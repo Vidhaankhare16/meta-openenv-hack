@@ -9,11 +9,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy package source
 COPY . .
 
-# HF Spaces requires port 7860
-EXPOSE 7860
+# OpenEnv LocalDockerProvider maps -p {local}:8000, so default to 8000.
+# HF Spaces routes to this port via app_port: 8000 in README frontmatter.
+EXPOSE 8000
 
 ENV WORKERS=1
-ENV PORT=7860
+ENV PORT=8000
 ENV HOST=0.0.0.0
 ENV MAX_CONCURRENT_ENVS=100
 
