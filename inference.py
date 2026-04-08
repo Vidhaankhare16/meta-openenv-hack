@@ -44,7 +44,7 @@ IMAGE_NAME   = os.getenv("IMAGE_NAME") or os.getenv("LOCAL_IMAGE_NAME")
 API_KEY      = os.getenv("HF_TOKEN")  or os.getenv("API_KEY")
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
 MODEL_NAME   = os.getenv("MODEL_NAME",   "Qwen/Qwen2.5-72B-Instruct")
-TASK_NAME    = os.getenv("CRISPR_TASK",  "easy")
+TASK_NAME    = os.getenv("CRISPR_TASK",  "all")   # "all" runs all 3 tasks
 BENCHMARK    = "crispr_env"
 MAX_STEPS    = 6
 TEMPERATURE  = 0.2
@@ -274,9 +274,23 @@ async def run_episode(task: str) -> None:
 # Entry point — always exits with code 0
 # ---------------------------------------------------------------------------
 
+async def run_all() -> None:
+    """Run all tasks (or a single task if CRISPR_TASK is set explicitly)."""
+    if TASK_NAME == "all":
+        tasks = ["easy", "medium", "hard"]
+    else:
+        tasks = [TASK_NAME]
+
+    for task in tasks:
+        try:
+            await run_episode(task)
+        except Exception as e:
+            print(f"[DEBUG] run_episode({task}) exception: {e}", flush=True)
+
+
 if __name__ == "__main__":
     try:
-        asyncio.run(run_episode(TASK_NAME))
+        asyncio.run(run_all())
     except Exception as e:
         # Should never reach here, but ensure clean exit regardless
         print(f"[DEBUG] Top-level exception: {e}", flush=True)
