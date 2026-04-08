@@ -9,12 +9,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy package source
 COPY . .
 
-# Expose port
-EXPOSE 8000
+# HF Spaces requires port 7860
+EXPOSE 7860
 
-# Environment variables (can be overridden at runtime)
-ENV WORKERS=4
-ENV PORT=8000
+ENV WORKERS=1
+ENV PORT=7860
 ENV HOST=0.0.0.0
 ENV MAX_CONCURRENT_ENVS=100
 
