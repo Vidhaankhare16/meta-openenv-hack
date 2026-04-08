@@ -18,4 +18,4 @@ ENV PORT=8000
 ENV HOST=0.0.0.0
 ENV MAX_CONCURRENT_ENVS=100
 
-CMD ["sh", "-c", "uvicorn crispr_env.server.app:app --host $HOST --port $PORT --workers $WORKERS"]
+CMD ["sh", "-c", "uvicorn server.app:app --host $HOST --port $PORT --workers $WORKERS"]

@@ -3,7 +3,7 @@
 import uvicorn
 from openenv.core.env_server import create_fastapi_app
 
-from environment import CRISPREnvironment
+from .environment import CRISPREnvironment
 
 app = create_fastapi_app(CRISPREnvironment)
 
